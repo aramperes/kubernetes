@@ -45,6 +45,7 @@ type RestartOptions struct {
 	Restarter        polymorphichelpers.ObjectRestarterFunc
 	Namespace        string
 	EnforceNamespace bool
+	LabelSelector    string
 
 	resource.FilenameOptions
 	genericclioptions.IOStreams
@@ -97,6 +98,7 @@ func NewCmdRolloutRestart(f cmdutil.Factory, streams genericclioptions.IOStreams
 	usage := "identifying the resource to get from a server."
 	cmdutil.AddFilenameOptionFlags(cmd, &o.FilenameOptions, usage)
 	cmdutil.AddFieldManagerFlagVar(cmd, &o.fieldManager, "kubectl-rollout")
+	cmd.Flags().StringVarP(&o.LabelSelector, "selector", "l", o.LabelSelector, "Selector (label query) to filter on, supports '=', '==', and '!='.(e.g. -l key1=value1,key2=value2)")
 	o.PrintFlags.AddFlags(cmd)
 	return cmd
 }
@@ -136,6 +138,7 @@ func (o RestartOptions) RunRestart() error {
 		WithScheme(scheme.Scheme, scheme.Scheme.PrioritizedVersionsAllGroups()...).
 		NamespaceParam(o.Namespace).DefaultNamespace().
 		FilenameParam(o.EnforceNamespace, &o.FilenameOptions).
+		LabelSelectorParam(o.LabelSelector).
 		ResourceTypeOrNameArgs(true, o.Resources...).
 		ContinueOnError().
 		Latest().
@@ -156,7 +159,14 @@ func (o RestartOptions) RunRestart() error {
 		allErrs = append(allErrs, err)
 	}
 
-	for _, patch := range set.CalculatePatches(infos, scheme.DefaultJSONEncoder(), set.PatchFn(o.Restarter)) {
+	patches := set.CalculatePatches(infos, scheme.DefaultJSONEncoder(), set.PatchFn(o.Restarter))
+
+	if len(patches) == 0 {
+		fmt.Fprintf(o.ErrOut, "No resources found in %s namespace.\n", o.Namespace)
+		return utilerrors.NewAggregate(allErrs)
+	}
+
+	for _, patch := range patches {
 		info := patch.Info
 
 		if patch.Err != nil {
