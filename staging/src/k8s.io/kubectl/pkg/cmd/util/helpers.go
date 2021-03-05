@@ -461,6 +461,10 @@ func AddGeneratorFlags(cmd *cobra.Command, defaultGenerator string) {
 	AddDryRunFlag(cmd)
 }
 
+func AddLabelSelectorFlagVar(cmd *cobra.Command, p *string) {
+	cmd.Flags().StringVarP(p, "selector", "l", *p, "Selector (label query) to filter on, supports '=', '==', and '!='.(e.g. -l key1=value1,key2=value2)")
+}
+
 type ValidateOptions struct {
 	EnableValidation bool
 }

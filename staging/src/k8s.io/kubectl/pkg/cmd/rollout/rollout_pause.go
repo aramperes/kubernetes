@@ -94,9 +94,9 @@ func NewCmdRolloutPause(f cmdutil.Factory, streams genericclioptions.IOStreams) 
 	o.PrintFlags.AddFlags(cmd)
 
 	usage := "identifying the resource to get from a server."
-	cmd.Flags().StringVarP(&o.LabelSelector, "selector", "l", o.LabelSelector, "Selector (label query) to filter on, supports '=', '==', and '!='.(e.g. -l key1=value1,key2=value2)")
 	cmdutil.AddFilenameOptionFlags(cmd, &o.FilenameOptions, usage)
 	cmdutil.AddFieldManagerFlagVar(cmd, &o.fieldManager, "kubectl-rollout")
+	cmdutil.AddLabelSelectorFlagVar(cmd, &o.LabelSelector)
 	return cmd
 }
 
