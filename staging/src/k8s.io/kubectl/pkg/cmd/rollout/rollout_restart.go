@@ -64,7 +64,10 @@ var (
 		kubectl rollout restart deployment/nginx
 
 		# Restart a daemonset
-		kubectl rollout restart daemonset/abc`)
+		kubectl rollout restart daemonset/abc
+
+		# Restart deployments with the app=nginx label
+		kubectl rollout restart deployment --selector=app=nginx`)
 )
 
 // NewRolloutRestartOptions returns an initialized RestartOptions instance
